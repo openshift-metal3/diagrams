@@ -1,0 +1,32 @@
+@startuml
+actor User
+participant BMO #green
+participant ICC #yellow
+participant Ironic #red
+participant HTTPD #red
+participant IPA #red
+entity Machine
+
+User->BMO: Create BareMetalHost
+BMO->Ironic: Find Node by MAC or name
+Ironic->BMO: Existing Node not found
+BMO->Ironic: Create Node and Ports
+Ironic->BMO: Credentials validation result
+BMO->ICC: Request PreprovisioningImage
+ICC->ICC: Cache ignition for host
+ICC->BMO: URL in PreprovisioningImage
+BMO->Ironic: Set ramdisk URL
+BMO->Ironic: Start inspection
+Ironic->ICC: Fetch IPA ramdisk
+ICC->Ironic: CoreOS with ignition embedded
+Ironic->HTTPD: Cache IPA ramdisk
+Ironic->Machine: Set boot device and power on
+Machine->HTTPD: Fetch IPA ramdisk
+Machine->Machine: Start IPA container
+IPA->IPA: Collect hardware inventory
+IPA->Ironic: Send inspection data
+Ironic->BMO: Inspection finished
+IPA->Ironic: Heartbeating periodically
+BMO->BMO: Create HardwareData
+BMO->BMO: Make the host available
+@enduml
