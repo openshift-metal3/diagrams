@@ -1,10 +1,10 @@
 @startuml
 actor User
-participant BMO #green
-participant ICC #yellow
-participant Ironic #red
-participant HTTPD #red
-participant IPA #red
+participant "baremetal-operator" as BMO #green
+participant "image-customization-controller" as ICC #yellow
+participant ironic as Ironic #red
+participant "web server" as HTTPD #red
+participant "ironic-python-agent" as IPA #red
 entity Machine
 
 User->BMO: Create BareMetalHost
