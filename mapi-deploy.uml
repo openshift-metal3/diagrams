@@ -1,0 +1,38 @@
+@startuml
+actor User
+participant "machine API" as MAPI #yellow
+participant "baremetal-operator" as BMO #green
+participant ironic as Ironic #red
+participant "ironic-python-agent" as IPA #red
+entity Machine
+
+User->MAPI: Scale up MachineSet
+MAPI->BMO: Find available BareMetalHost
+MAPI->BMO: Populate CustomDeploy & UserData
+BMO->Ironic: Set RootDeviceHints
+BMO->Ironic: Start automated cleaning (if needed)
+IPA->Ironic: Heartbeat
+Ironic->IPA: Get available clean steps
+Ironic->IPA: Run step erase_devices_metadata
+IPA->Machine: Erase partition tables asynchronously
+IPA->Ironic: Heartbeat
+Ironic->IPA: Get asynchronous step result
+Ironic->BMO: Node is available
+BMO->BMO: Check if RAID needs to be built
+BMO->BMO: Check if firmware settings have changed
+BMO->BMO: Check if firmware updates are needed
+BMO->Ironic: Deploy with custom step install_coreos
+IPA->Ironic: Heartbeat
+Ironic->IPA: Get available deploy steps
+Ironic->IPA: Execute install_coreos with given UserData
+IPA->Machine: Detect root device from RootDeviceHints
+IPA->Machine: Invoke coreos-installer with ignition from UserData
+IPA->Machine: Configure boot using efibootmgr
+IPA->Ironic: Heartbeat
+Ironic->IPA: Get asynchronous step result
+Ironic->Machine: Deconfigure IPA ramdisk
+Ironic->Machine: Reboot into CoreOS
+Ironic->BMO: Node is active
+BMO->MAPI: Host is provisioned
+MAPI->MAPI: Continues with provisioning
+@enduml
